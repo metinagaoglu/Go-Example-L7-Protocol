@@ -4,6 +4,7 @@ import(
 	"net"
 	"fmt"
 	"io"
+	"time"
 	. "github.com/metinagaoglu/GolangTCPServerExample/exampleProtocol"
 )
 
@@ -32,16 +33,17 @@ func main() {
 				break
 			}
 	
-			fmt.Println("Received: ", string(buf))
+			//fmt.Println("Received: ", string(buf))
 		}	
 	}()
 
+	start := time.Now()
 	/**
 	* Send 10 request to server
 	*/
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 150000; i++ {
 		data := CreateMessage(MessageTypeText, "This is my message")
-		fmt.Println(data)
+		//fmt.Println(data)
 		_, err = conn.Write(data)
 		if err != nil {
 			fmt.Println("Error writing to client")
@@ -49,6 +51,9 @@ func main() {
 		}
 	
 	}
+	end := time.Since(start)
+	fmt.Printf("duration time: %s ", end)
+
 
 	/**
 	* Infinite loop handler

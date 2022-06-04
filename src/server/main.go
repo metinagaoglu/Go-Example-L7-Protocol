@@ -5,10 +5,22 @@ import (
 	"fmt"
 	"os"
 	"io"
+	"os/signal" //https://pkg.go.dev/os/signal
+	"runtime/pprof"
 	. "github.com/metinagaoglu/GolangTCPServerExample/exampleProtocol"
 )
 
 func main()  {
+
+	f, err := os.Create("cpu.out")
+	if err != nil {
+		panic(err)
+	}
+
+	defer f.Close()
+
+	pprof.StartCPUProfile(f)
+	defer pprof.StopCPUProfile()
 
 	//TODO: use enviroment for port
 	ls, err := net.Listen("tcp", ":7000")
@@ -17,13 +29,22 @@ func main()  {
 	}
 
 	fmt.Println("Server started")
-	for {
-		conn, err := ls.Accept()
-		if err != nil {
-			panic(err)
+
+	// Concurrent
+	go func(){
+		for {
+			conn, err := ls.Accept()
+			if err != nil {
+				panic(err)
+			}
+			go handler(conn)
 		}
-		handler(conn)
-	}
+	}()
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	<-c
+
 }
 
 func handler(conn net.Conn) {
